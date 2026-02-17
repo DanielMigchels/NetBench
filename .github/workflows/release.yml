@@ -1,0 +1,104 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g., 1.0.0)"
+        required: true
+        type: string
+
+env:
+  DOTNET_VERSION: "9.0.x"
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  PROJECT_PATH: NetBench/NetBench/NetBench.csproj
+
+jobs:
+  build:
+    name: Build (${{ matrix.rid }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: win-x64
+            artifact-name: NetBench-win-x64.exe
+          - rid: linux-x64
+            artifact-name: NetBench-linux-x64
+          - rid: osx-x64
+            artifact-name: NetBench-osx-x64
+          - rid: osx-arm64
+            artifact-name: NetBench-osx-arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Build
+        run: dotnet build ${{ env.PROJECT_PATH }} -c Release --no-restore
+
+      - name: Publish
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }} \
+            -c Release \
+            -r ${{ matrix.rid }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:PublishTrimmed=true \
+            -p:PublishReadyToRun=true \
+            -o publish
+
+      - name: Prepare artifact
+        run: |
+          if [ "${{ matrix.rid }}" = "win-x64" ]; then
+            mv publish/NetBench.exe "publish/${{ matrix.artifact-name }}"
+          else
+            mv publish/NetBench "publish/${{ matrix.artifact-name }}"
+            chmod +x "publish/${{ matrix.artifact-name }}"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: publish/${{ matrix.artifact-name }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Mark binaries as executable
+        run: |
+          chmod +x artifacts/NetBench-linux-x64/NetBench-linux-x64
+          chmod +x artifacts/NetBench-osx-x64/NetBench-osx-x64
+          chmod +x artifacts/NetBench-osx-arm64/NetBench-osx-arm64
+
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ inputs.version }}" \
+            --title "v${{ inputs.version }}" \
+            --generate-notes \
+            artifacts/*/*
