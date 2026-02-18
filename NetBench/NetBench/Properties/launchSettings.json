@@ -1,0 +1,20 @@
+{
+  "profiles": {
+    "NetBench (Empty)": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    },
+    "NetBench (Server)": {
+      "commandName": "Project",
+      "commandLineArgs": "-s 0.0.0.0:5000"
+    },
+    "NetBench (Client)": {
+      "commandName": "Project",
+      "commandLineArgs": "-c 127.0.0.1:5000"
+    },
+    "NetBench (Server + Client)": {
+      "commandName": "Project",
+      "commandLineArgs": "-s 0.0.0.0:5000 -c 127.0.0.1:5000 -c 127.0.0.1:5000"
+    }
+  }
+}
