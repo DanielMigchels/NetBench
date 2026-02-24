@@ -1,6 +1,6 @@
 # NetBench
 
-Free and open-source .NET ip-network benchmarking tool in the spirit of Iperf. (https://iperf.fr/)
+Free and open-source .NET ip-network benchmarking tool in the spirit of [Iperf](https://iperf.fr/).
 
 <img style="width: 600px;" src="NetBench.Docs/demo_client.png">
 <img style="width: 600px;" src="NetBench.Docs/demo_server.png">
