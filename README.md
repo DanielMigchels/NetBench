@@ -6,7 +6,7 @@ Free and open-source .NET ip-network benchmarking tool in the spirit of Iperf. (
 <img style="width: 600px;" src="NetBench.Docs/demo_server.png">
 
 ## Install NetBench
-Download the lastest release from the Releases page
+Download the lastest release from the [Releases](https://github.com/DanielMigchels/NetBench/releases) page
 
 ## How to use NetBench
 
