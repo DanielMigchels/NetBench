@@ -7,6 +7,7 @@ public class ApplicationArgumentParser
         var servers = new List<string>();
         var clients = new List<string>();
         string? output = null;
+        double? throughputLimit = null;
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -26,6 +27,12 @@ public class ApplicationArgumentParser
                 case "-o":
                     output = args[i + 1];
                     break;
+                case "-l":
+                    if (double.TryParse(args[i + 1], out var limit) && limit > 0)
+                    {
+                        throughputLimit = limit;
+                    }
+                    break;
             }
 
             i++;
@@ -35,7 +42,8 @@ public class ApplicationArgumentParser
         {
             ServerEndpoints = servers,
             ClientEndpoints = clients,
-            OutputFile = output
+            OutputFile = output,
+            ThroughputLimitMbps = throughputLimit
         };
     }
 }

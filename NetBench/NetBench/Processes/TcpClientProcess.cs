@@ -5,7 +5,7 @@ using System.Net.Sockets;
 
 namespace NetBench.Processes;
 
-public class TcpClientProcess(string serverUri) : Process($"client-{serverUri}")
+public class TcpClientProcess(string serverUri, double? throughputLimitMbps = null) : Process($"client-{serverUri}")
 {
     private readonly TcpClientProcessState _state = new();
 
@@ -68,16 +68,45 @@ public class TcpClientProcess(string serverUri) : Process($"client-{serverUri}")
             long bytesSent = 0;
             double? previousMbps = null;
 
+            // Rate limiting: convert Mbps to bytes per second
+            var bytesPerSecondLimit = throughputLimitMbps.HasValue
+                ? throughputLimitMbps.Value * 1000000 / 8
+                : (double?)null;
+            var rateLimitStopwatch = Stopwatch.StartNew();
+            long rateLimitBytesSent = 0;
+
             while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
                     await stream.WriteAsync(buffer, cancellationToken);
                     bytesSent += buffer.Length;
+                    rateLimitBytesSent += buffer.Length;
                 }
                 catch (IOException)
                 {
                     return false;
+                }
+
+                if (bytesPerSecondLimit.HasValue)
+                {
+                    var elapsedSeconds = rateLimitStopwatch.Elapsed.TotalSeconds;
+                    var expectedSeconds = rateLimitBytesSent / bytesPerSecondLimit.Value;
+                    if (expectedSeconds > elapsedSeconds)
+                    {
+                        var delayMs = (int)((expectedSeconds - elapsedSeconds) * 1000);
+                        if (delayMs > 0)
+                        {
+                            await Task.Delay(delayMs, cancellationToken);
+                        }
+                    }
+
+                    // Reset rate limit tracking periodically to avoid drift
+                    if (rateLimitStopwatch.ElapsedMilliseconds >= 1000)
+                    {
+                        rateLimitStopwatch.Restart();
+                        rateLimitBytesSent = 0;
+                    }
                 }
 
                 if (stopwatch.ElapsedMilliseconds >= 1000)

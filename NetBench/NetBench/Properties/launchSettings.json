@@ -18,7 +18,7 @@
     },
     "NetBench (Output)": {
       "commandName": "Project",
-      "commandLineArgs": "-s 0.0.0.0:5000 -c 127.0.0.1:5000 -o output.txt"
+      "commandLineArgs": "-s 0.0.0.0:5000 -c 127.0.0.1:5000 -o output.txt -l 10"
     }
   }
 }

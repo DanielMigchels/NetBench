@@ -54,7 +54,7 @@ public class FileReportOutput : IOutput
     private void WriteReport()
     {
         var line = string.Empty;
-        line += $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:dd")}\t";
+        line += $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}\t";
 
         foreach (var processState in ProcessStates)
         {

@@ -12,11 +12,13 @@ if (applicationArguments.ServerEndpoints.Count == 0 && applicationArguments.Clie
     Console.WriteLine("Usage:");
     Console.WriteLine("  netbench -s <host:port>      Start a TCP server (Add as many as you need)");
     Console.WriteLine("  netbench -c <host:port>      Start a TCP client (Add as many as you need)");
+    Console.WriteLine("  netbench -l <mbps>           Limit client throughput (e.g. 10 for 10 Mbps)");
     Console.WriteLine("  netbench -o <file>           Write network report to file");
     Console.WriteLine();
     Console.WriteLine("Examples:");
     Console.WriteLine("  netbench -s 0.0.0.0:5000");
     Console.WriteLine("  netbench -c 192.168.1.100:5000");
+    Console.WriteLine("  netbench -c 192.168.1.100:5000 -l 10");
     Console.WriteLine("  netbench -c 192.168.1.100:5000 -o output.txt");
     return;
 }
@@ -44,7 +46,7 @@ foreach (var serverEndpoint in applicationArguments.ServerEndpoints)
 
 foreach (var clientEndpoint in applicationArguments.ClientEndpoints)
 {
-    applicationSession.AddProcess(new TcpClientProcess(clientEndpoint));
+    applicationSession.AddProcess(new TcpClientProcess(clientEndpoint, applicationArguments.ThroughputLimitMbps));
 }
 
 await applicationSession.RunAsync(cts.Token);
